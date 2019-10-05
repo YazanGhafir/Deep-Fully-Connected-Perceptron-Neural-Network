@@ -16,22 +16,22 @@ class Layer:
         self.localFieldsV = np.zeros(N)
         self.statesV = np.zeros(N)
         self.errorsV = np.zeros(N)
-        self.weightMatrix = np.random.normal(0, 0.8, (N, Nbefore))
+        self.weightMatrix = np.random.normal(0, 5, (N, Nbefore))
 
 
 class PreceptronNetwork:
     # numNLayer array of number of neurons in each layer
-    #def __init__(self, numNLayer):
-        #self.numNLayer = numNLayer
-        #self.net = [Layer(numNLayer[0], 0), Layer(numNLayer[1], numNLayer[0]), Layer(numNLayer[2], numNLayer[1]),
-                    #Layer(numNLayer[len(numNLayer) - 1], numNLayer[len(numNLayer) - 2])]
-
     def __init__(self, numNLayer):
         self.numNLayer = numNLayer
         self.net = [Layer(numNLayer[0], 0), Layer(numNLayer[1], numNLayer[0]), Layer(numNLayer[2], numNLayer[1]),
-                    Layer(numNLayer[3], numNLayer[2]),Layer(numNLayer[4], numNLayer[3]),Layer(numNLayer[5], numNLayer[4]),
-                    Layer(numNLayer[6], numNLayer[5]),Layer(numNLayer[7], numNLayer[6]),Layer(numNLayer[8], numNLayer[7]),
                     Layer(numNLayer[len(numNLayer) - 1], numNLayer[len(numNLayer) - 2])]
+
+    #def __init__(self, numNLayer):
+        #self.numNLayer = numNLayer
+        #self.net = [Layer(numNLayer[0], 0), Layer(numNLayer[1], numNLayer[0]), Layer(numNLayer[2], numNLayer[1]),
+                    #Layer(numNLayer[3], numNLayer[2]),Layer(numNLayer[4], numNLayer[3]),Layer(numNLayer[5], numNLayer[4]),
+                    #Layer(numNLayer[6], numNLayer[5]),Layer(numNLayer[7], numNLayer[6]),Layer(numNLayer[8], numNLayer[7]),
+                    #Layer(numNLayer[len(numNLayer) - 1], numNLayer[len(numNLayer) - 2])]
 
     # the local fields is calculated by just matrix multiplication W * X for each layer beginning with the first as an input
     def calcLocalFieldsAndStates(self):
@@ -41,7 +41,8 @@ class PreceptronNetwork:
             tmp = np.dot(a, b)
             tmp = tmp - self.net[i].thresholdV
             np.copyto(self.net[i].localFieldsV, tmp)
-            tmp = np.tanh(tmp)
+            #tmp = np.tanh(tmp)
+            tmp = np.sin(tmp)
             np.copyto(self.net[i].statesV, tmp)
 
     def calcErrors (self, target):
@@ -109,8 +110,15 @@ class PreceptronNetwork:
         self.updateWeights(learningRate)
 
     # the derivative of the tangent hyperbolic function
+    #def gP(self, b):
+        #return (1- (np.tanh(b)*np.tanh(b)))
+
+    # the derivative of the sin activation function
     def gP(self, b):
-        return (1- (np.tanh(b)*np.tanh(b)))
+        if(b >= 0):
+            return abs(np.sqrt(1 - (np.sin(b) * np.sin(b))))
+        else:
+            return - abs(np.sqrt(1 - (np.sin(b) * np.sin(b))))
 
     #test with the validation set
     def validate(self,inputtestpatterns, testtargetV):
@@ -143,7 +151,7 @@ testdata = np.loadtxt(validatingset, delimiter= ",")
 inputtestpatterns = testdata[:, :2]
 testtargetV = testdata[:, 2:3]
 
-pn = PreceptronNetwork([2, 10, 9, 8, 7, 6, 5, 4, 3, 1])
+pn = PreceptronNetwork([2, 10, 6, 1])
 pn.trainRandomly(inputpatterns, targetV, 50, 0.03)
 c = pn.validate(inputtestpatterns, testtargetV)
 print(c)
